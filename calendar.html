@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calendar | TO-DUE LIST</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./css/style.css" />
+  </head>
+
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div>
+          <div class="logo">
+            <div class="logo-box">TD</div>
+            <div><h1>TO-DUE LIST</h1></div>
+          </div>
+          <nav aria-label="Main navigation">
+            <a href="./index.html" class="nav-link"><span>⌂</span>Home</a>
+            <a href="./tasks.html" class="nav-link"><span>✓</span>Tasks</a>
+            <a
+              href="./calendar.html"
+              class="nav-link active"
+              aria-current="page"
+              ><span>□</span>Calendar</a
+            >
+            <a href="./progress.html" class="nav-link"
+              ><span>◔</span>Progress</a
+            >
+          </nav>
+        </div>
+      </aside>
+
+      <main>
+        <header class="topbar">
+          <span class="current-page">Calendar</span>
+        </header>
+        <div class="content">
+          <section class="welcome">
+            <span class="label">DUE DATES</span>
+            <h2>Calendar</h2>
+            <p>See your deadlines across the month.</p>
+          </section>
+
+          <section class="calendar-panel" aria-label="Task calendar">
+            <div class="calendar-toolbar">
+              <div class="calendar-month-controls">
+                <button
+                  class="calendar-arrow"
+                  id="previousMonth"
+                  type="button"
+                  aria-label="Previous month"
+                >
+                  ‹
+                </button>
+                <h3 id="calendarMonthLabel"></h3>
+                <button
+                  class="calendar-arrow"
+                  id="nextMonth"
+                  type="button"
+                  aria-label="Next month"
+                >
+                  ›
+                </button>
+              </div>
+              <button class="btn calendar-today" id="todayMonth" type="button">
+                Today
+              </button>
+            </div>
+            <div class="calendar-weekdays" aria-hidden="true">
+              <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span
+              ><span>Thu</span><span>Fri</span><span>Sat</span>
+            </div>
+            <div
+              class="calendar-grid"
+              id="calendarGrid"
+              role="grid"
+              aria-labelledby="calendarMonthLabel"
+            ></div>
+          </section>
+
+          <section class="calendar-agenda" aria-live="polite" aria-labelledby="calendarAgendaHeading">
+            <div class="section-top">
+              <div>
+                <span class="label">SELECTED DAY</span>
+                <h3 id="calendarAgendaHeading">Choose a date</h3>
+              </div>
+            </div>
+            <div class="calendar-agenda-list" id="calendarAgendaList"></div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <nav class="mobile-nav" aria-label="Main navigation">
+      <a href="./index.html"><span>⌂</span>Home</a>
+      <a href="./tasks.html"><span>✓</span>Tasks</a>
+      <a href="./calendar.html" class="active" aria-current="page"
+        ><span>□</span>Calendar</a
+      >
+      <a href="./progress.html"><span>◔</span>Progress</a>
+    </nav>
+
+    <script src="./js/script.js"></script>
+  </body>
+</html>

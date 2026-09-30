@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Progress | TO-DUE LIST</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./css/style.css" />
+  </head>
+
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div>
+          <div class="logo">
+            <div class="logo-box">TD</div>
+            <div><h1>TO-DUE LIST</h1></div>
+          </div>
+          <nav aria-label="Main navigation">
+            <a href="./index.html" class="nav-link"><span>⌂</span>Home</a>
+            <a href="./tasks.html" class="nav-link"><span>✓</span>Tasks</a>
+            <a href="./calendar.html" class="nav-link"
+              ><span>□</span>Calendar</a
+            >
+            <a
+              href="./progress.html"
+              class="nav-link active"
+              aria-current="page"
+              ><span>◔</span>Progress</a
+            >
+          </nav>
+        </div>
+      </aside>
+
+      <main>
+        <header class="topbar">
+          <span class="current-page">Progress</span>
+        </header>
+        <div class="content">
+          <section class="welcome">
+            <span class="label">YOUR MOMENTUM</span>
+            <h2>Progress</h2>
+            <p>A clear view of what you have finished and what is next.</p>
+          </section>
+
+          <div class="top-cards progress-cards">
+            <section class="card progress">
+              <div class="card-top">
+                <div>
+                  <span class="label">TODAY</span>
+                  <h3>Today's progress</h3>
+                </div>
+                <strong id="todayProgressRate">0%</strong>
+              </div>
+              <div class="bar progress-track" role="progressbar" aria-label="Today's task completion" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                <div class="bar-fill" id="todayProgressFill"></div>
+              </div>
+              <p class="progress-message" id="todayProgressMessage">No tasks due today.</p>
+            </section>
+            <section class="card progress">
+              <div class="card-top">
+                <div>
+                  <span class="label">OVERALL COMPLETION</span>
+                  <h3>Tasks finished</h3>
+                </div>
+                <strong id="progressRate">0%</strong>
+              </div>
+              <div
+                class="bar progress-track"
+                role="progressbar"
+                aria-label="Overall task completion"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                aria-valuenow="0"
+              >
+                <div class="bar-fill" id="progressFill"></div>
+              </div>
+              <p class="progress-message" id="progressMessage">
+                Add a task to start tracking your progress.
+              </p>
+            </section>
+
+            <section class="card workload">
+              <span class="label">TASK SUMMARY</span>
+              <div class="workload-info">
+                <strong id="progressTotal">0</strong>
+                <span>tasks on your list</span>
+              </div>
+              <p>
+                <strong id="progressDone">0</strong> completed
+                <span aria-hidden="true">·</span>
+                <strong id="progressOpen">0</strong> remaining
+              </p>
+            </section>
+          </div>
+
+          <section class="weekly-progress-section">
+            <div class="section-top">
+              <div>
+                <span class="label">THIS WEEK</span>
+                <h3>Weekly progress</h3>
+              </div>
+            </div>
+            <div class="weekly-summary" id="weeklySummary"></div>
+          </section>
+
+          <section class="completed-tasks-section">
+            <div class="section-top">
+              <div>
+                <span class="label">WELL DONE</span>
+                <h3>Completed tasks</h3>
+              </div>
+            </div>
+            <div class="completed-task-list" id="completedTaskList"></div>
+          </section>
+
+          <section class="subject-progress-section">
+            <div class="section-top">
+              <div>
+                <span class="label">BY SUBJECT</span>
+                <h3>Course progress</h3>
+              </div>
+            </div>
+            <div class="empty-state progress-empty" id="progressEmpty">
+              <div class="empty-state-icon" aria-hidden="true">◔</div>
+              <h4>Your progress starts with a task.</h4>
+              <p>Add tasks with subjects to see your course breakdown.</p>
+              <a class="btn primary empty-state-button" href="./tasks.html"
+                >Go to tasks</a
+              >
+            </div>
+            <div
+              class="subject-progress-list"
+              id="subjectProgress"
+              aria-live="polite"
+            ></div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <nav class="mobile-nav" aria-label="Main navigation">
+      <a href="./index.html"><span>⌂</span>Home</a>
+      <a href="./tasks.html"><span>✓</span>Tasks</a>
+      <a href="./calendar.html"><span>□</span>Calendar</a>
+      <a href="./progress.html" class="active" aria-current="page"
+        ><span>◔</span>Progress</a
+      >
+    </nav>
+
+    <script src="./js/script.js"></script>
+  </body>
+</html>

@@ -27,23 +27,23 @@
             </div>
           </div>
 
-          <nav>
-            <a href="#" class="nav-link active">
+          <nav aria-label="Main navigation">
+            <a href="./index.html" class="nav-link active" aria-current="page">
               <span>⌂</span>
               Home
             </a>
 
-            <a href="#" class="nav-link">
+            <a href="./tasks.html" class="nav-link">
               <span>✓</span>
               Tasks
             </a>
 
-            <a href="#" class="nav-link">
+            <a href="./calendar.html" class="nav-link">
               <span>□</span>
               Calendar
             </a>
 
-            <a href="#" class="nav-link">
+            <a href="./progress.html" class="nav-link">
               <span>◔</span>
               Progress
             </a>
@@ -59,8 +59,8 @@
         <div class="content">
           <section class="welcome">
             <span class="date" id="todayDate"></span>
-            <h2>What do you need to get done?</h2>
-            <p>Add a class task or anything you want.</p>
+            <h2 id="greetingHeading">What do you need to get done?</h2>
+            <p id="greetingMessage">Here’s what’s on your plate today.</p>
           </section>
 
           <div class="actions">
@@ -69,22 +69,88 @@
               Add Task
             </button>
 
-            <button class="btn">
+            <button class="btn" id="breakDownTaskButton" type="button">
               <span>↳</span>
               Break Down Task
             </button>
 
-            <button class="btn">
+            <a class="btn" href="./calendar.html">
               <span>□</span>
               View Calendar
-            </button>
+            </a>
           </div>
+
+          <section
+            class="reminder today-reminder"
+            id="todayDueReminder"
+            hidden
+            aria-labelledby="todayDueHeading"
+          >
+            <div class="reminder-icon" aria-hidden="true">🔔</div>
+            <div class="reminder-text">
+              <span class="label">DUE TODAY</span>
+              <h3 id="todayDueHeading"><span id="todayDueTaskName"></span></h3>
+              <p>
+                <span id="todayDueTaskSteps"></span>
+                <span aria-hidden="true"> · </span>
+                <span id="todayDueTaskTime"></span>
+              </p>
+            </div>
+            <div class="reminder-buttons">
+              <a class="reminder-btn" id="todayDueViewTask" href="./tasks.html"
+                >View Task</a
+              >
+              <button
+                class="reminder-btn done-btn"
+                id="markTodayDueDone"
+                type="button"
+              >
+                Mark as Done
+              </button>
+            </div>
+          </section>
+
+          <section
+            class="today-progress"
+            aria-labelledby="todayProgressHeading"
+          >
+            <div class="section-top">
+              <div>
+                <span class="label">DAILY PROGRESS</span>
+                <h3 id="todayProgressHeading">Today's progress</h3>
+              </div>
+              <strong class="today-progress-rate" id="todayProgressRate"
+                >0%</strong
+              >
+            </div>
+            <div
+              class="today-progress-segments"
+              id="todayProgressSegments"
+              role="progressbar"
+              aria-label="Today's task completion"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow="0"
+            ></div>
+            <p class="today-progress-count" id="todayProgressCount">
+              No tasks due today
+            </p>
+          </section>
+
+          <section class="card workload home-workload" aria-live="polite">
+            <div>
+              <span class="label">TODAY'S WORKLOAD</span>
+              <h3 id="todayWorkloadLabel">Light workload</h3>
+              <p id="todayWorkloadDetails">0 tasks · ~0 min planned</p>
+            </div>
+            <p class="workload-message" id="todayWorkloadMessage"></p>
+          </section>
 
           <section class="tasks">
             <div class="section-top">
               <div>
                 <span class="label">ON MY LIST</span>
-                <h3>My tasks</h3>
+                <h3>Today's tasks</h3>
               </div>
             </div>
 
@@ -107,23 +173,23 @@
       </main>
     </div>
 
-    <nav class="mobile-nav">
-      <a href="#" class="active">
+    <nav class="mobile-nav" aria-label="Main navigation">
+      <a href="./index.html" class="active" aria-current="page">
         <span>⌂</span>
         Home
       </a>
 
-      <a href="#">
+      <a href="./tasks.html">
         <span>✓</span>
         Tasks
       </a>
 
-      <a href="#">
+      <a href="./calendar.html">
         <span>□</span>
         Calendar
       </a>
 
-      <a href="#">
+      <a href="./progress.html">
         <span>◔</span>
         Progress
       </a>
@@ -186,9 +252,19 @@
         <label class="reminder-toggle">
           <span>
             <strong>Reminder</strong>
-            <small>Keep a reminder with this task</small>
+            <small>Browser notification while this site is open</small>
           </span>
           <input name="reminder" type="checkbox" />
+        </label>
+
+        <label class="form-field reminder-timing-field">
+          <span>Remind me</span>
+          <select name="reminderTiming">
+            <option value="1h">1 hour before</option>
+            <option value="3h">3 hours before</option>
+            <option value="deadline">At deadline</option>
+            <option value="overdue">When overdue</option>
+          </select>
         </label>
 
         <p class="form-error" id="taskFormError" role="alert"></p>

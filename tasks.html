@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tasks | TO-DUE LIST</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./css/style.css" />
+  </head>
+
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div>
+          <div class="logo">
+            <div class="logo-box">TD</div>
+            <div><h1>TO-DUE LIST</h1></div>
+          </div>
+          <nav aria-label="Main navigation">
+            <a href="./index.html" class="nav-link"><span>⌂</span>Home</a>
+            <a href="./tasks.html" class="nav-link active" aria-current="page"
+              ><span>✓</span>Tasks</a
+            >
+            <a href="./calendar.html" class="nav-link"
+              ><span>□</span>Calendar</a
+            >
+            <a href="./progress.html" class="nav-link"
+              ><span>◔</span>Progress</a
+            >
+          </nav>
+        </div>
+      </aside>
+
+      <main>
+        <header class="topbar">
+          <span class="current-page">Tasks</span>
+        </header>
+        <div class="content">
+          <section class="welcome">
+            <span class="label">YOUR WORKSPACE</span>
+            <h2>Tasks</h2>
+            <p>Keep track of what needs your attention.</p>
+          </section>
+
+          <div class="task-page-toolbar">
+            <div class="filter-bar" role="group" aria-label="Filter tasks">
+              <button
+                class="filter-button active"
+                type="button"
+                data-task-filter="all"
+                aria-pressed="true"
+              >
+                All
+              </button>
+              <button class="filter-button" type="button" data-task-filter="urgent" aria-pressed="false">Urgent</button>
+              <button class="filter-button" type="button" data-task-filter="upcoming" aria-pressed="false">Upcoming</button>
+              <button class="filter-button" type="button" data-task-filter="later" aria-pressed="false">Later</button>
+              <button class="filter-button" type="button" data-task-filter="completed" aria-pressed="false">Completed</button>
+            </div>
+            <button class="btn primary" type="button" data-open-task-dialog>
+              <span aria-hidden="true">+</span>
+              Add Task
+            </button>
+          </div>
+
+          <section class="tasks">
+            <div class="section-top">
+              <div>
+                <span class="label">TASK LIST</span>
+                <h3>All tasks</h3>
+              </div>
+            </div>
+            <div class="empty-state" id="emptyState">
+              <div class="empty-state-icon" aria-hidden="true">✓</div>
+              <h4>Nothing on your list yet.</h4>
+              <p>Add the first thing you want to remember.</p>
+              <button
+                class="btn primary empty-state-button"
+                type="button"
+                data-open-task-dialog
+              >
+                <span aria-hidden="true">+</span>
+                Add your first task
+              </button>
+            </div>
+            <div class="task-list" id="taskList" aria-live="polite"></div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <nav class="mobile-nav" aria-label="Main navigation">
+      <a href="./index.html"><span>⌂</span>Home</a>
+      <a href="./tasks.html" class="active" aria-current="page"
+        ><span>✓</span>Tasks</a
+      >
+      <a href="./calendar.html"><span>□</span>Calendar</a>
+      <a href="./progress.html"><span>◔</span>Progress</a>
+    </nav>
+
+    <dialog
+      class="task-dialog"
+      id="addTaskDialog"
+      aria-labelledby="addTaskDialogTitle"
+    >
+      <form class="task-form" id="addTaskForm">
+        <div class="dialog-heading">
+          <div>
+            <span class="label">NEW TASK</span>
+            <h2 id="addTaskDialogTitle">Add a task</h2>
+          </div>
+          <button
+            class="dialog-close"
+            type="button"
+            id="closeTaskDialogButton"
+            aria-label="Close dialog"
+          >
+            ×
+          </button>
+        </div>
+        <label class="form-field">
+          <span>Task name</span>
+          <input
+            name="name"
+            type="text"
+            placeholder="e.g. Finish science project"
+            required
+            maxlength="120"
+          />
+        </label>
+        <label class="form-field">
+          <span>Subject</span>
+          <input
+            name="subject"
+            type="text"
+            placeholder="e.g. Biology"
+            required
+            maxlength="80"
+          />
+        </label>
+        <div class="form-row">
+          <label class="form-field">
+            <span>Due date</span>
+            <input name="dueDate" type="date" required />
+          </label>
+          <label class="form-field">
+            <span>Due time</span>
+            <input name="dueTime" type="time" required />
+          </label>
+        </div>
+        <label class="reminder-toggle">
+          <span
+            ><strong>Reminder</strong
+            ><small>Browser notification while this site is open</small></span
+          >
+          <input name="reminder" type="checkbox" />
+        </label>
+        <label class="form-field reminder-timing-field">
+          <span>Remind me</span>
+          <select name="reminderTiming">
+            <option value="1h">1 hour before</option>
+            <option value="3h">3 hours before</option>
+            <option value="deadline">At deadline</option>
+            <option value="overdue">When overdue</option>
+          </select>
+        </label>
+        <p class="form-error" id="taskFormError" role="alert"></p>
+        <div class="dialog-actions">
+          <button class="btn" type="button" id="cancelTaskButton">
+            Cancel
+          </button>
+          <button class="btn primary" type="submit">Add Task</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="./js/script.js"></script>
+  </body>
+</html>
