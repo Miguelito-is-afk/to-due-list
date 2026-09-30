@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TO-DUE LIST</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div>
+          <div class="logo">
+            <div class="logo-box">TD</div>
+
+            <div>
+              <h1>TO-DUE LIST</h1>
+            </div>
+          </div>
+
+          <nav>
+            <a href="#" class="nav-link active">
+              <span>⌂</span>
+              Home
+            </a>
+
+            <a href="#" class="nav-link">
+              <span>✓</span>
+              Tasks
+            </a>
+
+            <a href="#" class="nav-link">
+              <span>□</span>
+              Calendar
+            </a>
+
+            <a href="#" class="nav-link">
+              <span>◔</span>
+              Progress
+            </a>
+          </nav>
+        </div>
+
+        <div class="tip">
+          <strong>Got a deadline?</strong>
+          <span>Put it here before you forget.</span>
+        </div>
+      </aside>
+
+      <main>
+        <header class="topbar">
+          <span class="current-page">Home</span>
+        </header>
+
+        <div class="content">
+          <section class="welcome">
+            <span class="date" id="todayDate"></span>
+            <h2>What do you need to get done?</h2>
+            <p>Add a class task or anything you want.</p>
+          </section>
+
+          <div class="actions">
+            <button class="btn primary" id="addTaskButton" type="button">
+              <span>+</span>
+              Add Task
+            </button>
+
+            <button class="btn">
+              <span>↳</span>
+              Break Down Task
+            </button>
+
+            <button class="btn">
+              <span>□</span>
+              View Calendar
+            </button>
+          </div>
+
+          <section class="tasks">
+            <div class="section-top">
+              <div>
+                <span class="label">ON MY LIST</span>
+                <h3>My tasks</h3>
+              </div>
+
+            </div>
+
+            <div class="empty-state" id="emptyState">
+              <div class="empty-state-icon" aria-hidden="true">✓</div>
+              <h4>Nothing on your list yet.</h4>
+              <p>Add the first thing you want to remember.</p>
+              <button class="btn primary empty-state-button" id="emptyStateAddButton" type="button">
+                <span>+</span>
+                Add your first task
+              </button>
+            </div>
+            <div class="task-list" id="taskList" aria-live="polite"></div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <nav class="mobile-nav">
+      <a href="#" class="active">
+        <span>⌂</span>
+        Home
+      </a>
+
+      <a href="#">
+        <span>✓</span>
+        Tasks
+      </a>
+
+      <a href="#">
+        <span>□</span>
+        Calendar
+      </a>
+
+      <a href="#">
+        <span>◔</span>
+        Progress
+      </a>
+    </nav>
+
+    <dialog class="task-dialog" id="addTaskDialog" aria-labelledby="addTaskDialogTitle">
+      <form class="task-form" id="addTaskForm">
+        <div class="dialog-heading">
+          <div>
+            <span class="label">NEW TASK</span>
+            <h2 id="addTaskDialogTitle">Add a task</h2>
+          </div>
+          <button class="dialog-close" type="button" id="closeTaskDialogButton" aria-label="Close dialog">×</button>
+        </div>
+
+        <label class="form-field">
+          <span>Task name</span>
+          <input name="name" type="text" placeholder="e.g. Finish science project" required maxlength="120" />
+        </label>
+
+        <label class="form-field">
+          <span>Subject</span>
+          <input name="subject" type="text" placeholder="e.g. Biology" required maxlength="80" />
+        </label>
+
+        <div class="form-row">
+          <label class="form-field">
+            <span>Due date</span>
+            <input name="dueDate" type="date" required />
+          </label>
+          <label class="form-field">
+            <span>Due time</span>
+            <input name="dueTime" type="time" required />
+          </label>
+        </div>
+
+        <label class="reminder-toggle">
+          <span>
+            <strong>Reminder</strong>
+            <small>Keep a reminder with this task</small>
+          </span>
+          <input name="reminder" type="checkbox" />
+        </label>
+
+        <p class="form-error" id="taskFormError" role="alert"></p>
+
+        <div class="dialog-actions">
+          <button class="btn" type="button" id="cancelTaskButton">Cancel</button>
+          <button class="btn primary" type="submit">Add Task</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="/js/script.js"></script>
+  </body>
+</html>
