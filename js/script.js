@@ -1,4 +1,6 @@
 const STORAGE_KEY = "to-due-list-tasks";
+const NOTIFICATION_STATE_KEY = "to-due-list-notification-state";
+const REMINDER_TIMINGS = ["1h", "3h", "deadline", "overdue"];
 const dialog = document.querySelector("#addTaskDialog");
 const form = document.querySelector("#addTaskForm");
 const taskList = document.querySelector("#taskList");
@@ -16,6 +18,8 @@ let moveSelection = null;
 let selectedDate = dateKey(new Date());
 let displayedMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 let toastTimeout;
+let notificationState = {};
+let notificationErrorReported = false;
 
 function createDialog(id, title) {
   const element = document.createElement("dialog");
@@ -67,33 +71,197 @@ function showMessage(message) {
   }, 4500);
 }
 
+function getNotificationCapability() {
+  return {
+    supported: typeof window !== "undefined" && "Notification" in window,
+    secureContext: typeof window !== "undefined" && window.isSecureContext,
+  };
+}
+
+function getNotificationStateKey(taskId, reminderTiming) {
+  return `${taskId}::${reminderTiming}`;
+}
+
+function getNotificationTaskId(stateKey) {
+  const separator = stateKey.lastIndexOf("::");
+  const timing = stateKey.slice(separator + 2);
+  return REMINDER_TIMINGS.includes(timing) ? stateKey.slice(0, separator) : "";
+}
+
+function loadNotificationState() {
+  try {
+    const stored = localStorage.getItem(NOTIFICATION_STATE_KEY);
+    const parsed = stored ? JSON.parse(stored) : {};
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+  } catch (error) {
+    console.error("Could not load browser reminder state.", error);
+    return {};
+  }
+}
+
+function persistNotificationState() {
+  try {
+    localStorage.setItem(NOTIFICATION_STATE_KEY, JSON.stringify(notificationState));
+  } catch (error) {
+    console.error("Could not save browser reminder state.", error);
+  }
+}
+
+function clearNotificationStateForTask(taskId) {
+  let changed = false;
+  Object.keys(notificationState).forEach((key) => {
+    if (getNotificationTaskId(key) === taskId) {
+      delete notificationState[key];
+      changed = true;
+    }
+  });
+  return changed;
+}
+
+function reconcileNotificationStateForTask(task) {
+  if (!task || !task.id) return false;
+  if (!task.reminder || !isValidDateKey(task.dueDate) || !isValidTime(task.dueTime)) {
+    return clearNotificationStateForTask(task.id);
+  }
+  let changed = false;
+  REMINDER_TIMINGS.forEach((timing) => {
+    const key = getNotificationStateKey(task.id, timing);
+    const record = notificationState[key];
+    const isCurrentTiming = timing === task.reminderTiming;
+    if (!record || !isCurrentTiming || record.dueDate !== task.dueDate || record.dueTime !== task.dueTime || record.reminderTiming !== timing) {
+      if (record) {
+        delete notificationState[key];
+        changed = true;
+      }
+    }
+  });
+  return changed;
+}
+
+function reconcileNotificationState() {
+  let changed = false;
+  Object.keys(notificationState).forEach((key) => {
+    if (!tasks.some((task) => task.id === getNotificationTaskId(key))) {
+      delete notificationState[key];
+      changed = true;
+    }
+  });
+  tasks.forEach((task) => {
+    if (reconcileNotificationStateForTask(task)) changed = true;
+  });
+  if (changed) persistNotificationState();
+}
+
+function getReminderDate(task, timing) {
+  if (!isValidDateKey(task.dueDate) || !isValidTime(task.dueTime)) return null;
+  const due = new Date(`${task.dueDate}T${task.dueTime}`);
+  if (Number.isNaN(due.getTime())) return null;
+  if (timing === "1h") return new Date(due.getTime() - 60 * 60 * 1000);
+  if (timing === "3h") return new Date(due.getTime() - 3 * 60 * 60 * 1000);
+  if (timing === "deadline") return due;
+  if (timing === "overdue") return due;
+  return null;
+}
+
+function getReminderMessage(task, timing, now) {
+  const subjectLabel = task.subject && task.subject !== "No subject" ? ` · ${task.subject}` : "";
+  const due = getReminderDate(task, "deadline");
+  let message;
+  if (due && now > due) {
+    message = `"${task.name}" is overdue. Its reminder was delivered late.${subjectLabel}`;
+  } else if (timing === "1h") {
+    message = `Reminder: "${task.name}" is due in 1 hour.${subjectLabel}`;
+  } else if (timing === "3h") {
+    message = `Reminder: "${task.name}" is due in 3 hours.${subjectLabel}`;
+  } else if (timing === "deadline") {
+    message = `"${task.name}" is due now.${subjectLabel}`;
+  } else if (timing === "overdue") {
+    message = `"${task.name}" is overdue.${subjectLabel}`;
+  } else {
+    message = `"${task.name}" needs attention.${subjectLabel}`;
+  }
+  return message.length > 200 ? `${message.slice(0, 197)}...` : message;
+}
+
+function shouldSendReminder(task, timing, now) {
+  if (!task.reminder || task.completed) return false;
+  const trigger = getReminderDate(task, timing);
+  if (!trigger) return false;
+
+  const stateKey = getNotificationStateKey(task.id, timing);
+  const stateRecord = notificationState[stateKey];
+  const sameReminderState = stateRecord && stateRecord.dueDate === task.dueDate && stateRecord.dueTime === task.dueTime && stateRecord.reminderTiming === timing && stateRecord.sent;
+  if (sameReminderState) return false;
+
+  return now >= trigger;
+}
+
+function triggerReminderNotification(task, timing, now = new Date()) {
+  const capability = getNotificationCapability();
+  if (!capability.supported || !capability.secureContext || Notification.permission !== "granted") {
+    return false;
+  }
+
+  const stateKey = getNotificationStateKey(task.id, timing);
+  try {
+    const notification = new Notification("TO-DUE LIST", {
+      body: getReminderMessage(task, timing, now),
+      tag: stateKey,
+      icon: new URL("./assets/favicon.png", document.baseURI).href,
+    });
+    notification.onclick = () => {
+      window.focus();
+      const taskUrl = new URL("./tasks.html", window.location.href);
+      taskUrl.hash = task.id;
+      window.location.href = taskUrl.href;
+    };
+    notificationState[stateKey] = {
+      sent: true,
+      sentAt: new Date().toISOString(),
+      reminderTiming: timing,
+      dueDate: task.dueDate,
+      dueTime: task.dueTime,
+    };
+    persistNotificationState();
+    notificationErrorReported = false;
+    return true;
+  } catch (error) {
+    if (!notificationErrorReported) {
+      console.error("Could not create a browser reminder notification.", error);
+      showMessage("A browser reminder could not be delivered.");
+      notificationErrorReported = true;
+    }
+    return false;
+  }
+}
+
 function checkReminders() {
-  if (!("Notification" in window) || Notification.permission !== "granted") return;
+  const capability = getNotificationCapability();
+  if (!capability.supported || !capability.secureContext || Notification.permission !== "granted") {
+    updateNotificationToggle();
+    return;
+  }
+
+  try {
+    const storedState = localStorage.getItem(NOTIFICATION_STATE_KEY);
+    if (storedState) {
+      const latestState = JSON.parse(storedState);
+      if (latestState && typeof latestState === "object" && !Array.isArray(latestState)) {
+        notificationState = { ...notificationState, ...latestState };
+      }
+    }
+  } catch (error) {
+    console.error("Could not refresh browser reminder state.", error);
+  }
+
   const now = new Date();
   tasks.forEach((task) => {
     if (!task.reminder || task.completed || !isValidDateKey(task.dueDate) || !isValidTime(task.dueTime)) return;
-    const due = new Date(`${task.dueDate}T${task.dueTime}`);
-    const leadTime = task.reminderTiming === "1h" ? 60 * 60 * 1000
-      : task.reminderTiming === "3h" ? 3 * 60 * 60 * 1000
-        : 0;
-    const trigger = new Date(due.getTime() - leadTime);
-    const isEligible = task.reminderTiming === "overdue"
-      ? now > due
-      : now >= trigger && now <= due;
-    if (!isEligible) return;
-    const key = `to-due-list-reminder:${task.id}:${task.dueDate}:${task.dueTime}:${task.reminderTiming}`;
-    try {
-      if (localStorage.getItem(key)) return;
-      new Notification(task.reminderTiming === "overdue" ? "Task overdue" : "Task due soon", {
-        body: `${task.name} · ${task.subject}`,
-        tag: key,
-      });
-      localStorage.setItem(key, "sent");
-    } catch (error) {
-      console.error("Could not deliver or save a browser reminder.", error);
-      showMessage("A browser reminder could not be delivered.");
-    }
+    const reminderTiming = task.reminderTiming || "deadline";
+    if (!shouldSendReminder(task, reminderTiming, now)) return;
+    triggerReminderNotification(task, reminderTiming, now);
   });
+  updateNotificationToggle();
 }
 
 function dateKey(date) {
@@ -172,7 +340,10 @@ function loadTasks() {
   }
 }
 
+notificationState = loadNotificationState();
 let tasks = loadTasks();
+
+reconcileNotificationState();
 
 function updateTasks(change) {
   const previousTasks = JSON.parse(JSON.stringify(tasks));
@@ -185,6 +356,7 @@ function updateTasks(change) {
     showMessage("Your change could not be saved. Check this browser's storage settings.");
     return false;
   }
+  reconcileNotificationState();
   renderPage();
   return true;
 }
@@ -673,7 +845,93 @@ function renderSubjectProgress() {
   });
 }
 
+function updateNotificationToggle() {
+  const button = document.querySelector("#notificationToggle");
+  const note = document.querySelector(".notification-status-note");
+  if (!button || !note) return;
+  button.disabled = false;
+  button.removeAttribute("aria-disabled");
+  const capability = getNotificationCapability();
+  if (!capability.supported) {
+    button.textContent = "Notifications unavailable";
+    button.disabled = true;
+    button.setAttribute("aria-disabled", "true");
+  } else if (!capability.secureContext) {
+    button.textContent = "Secure context required";
+    button.disabled = true;
+    button.setAttribute("aria-disabled", "true");
+  } else if (Notification.permission === "granted") {
+    button.textContent = "Notifications enabled";
+    button.dataset.state = "enabled";
+  } else if (Notification.permission === "denied") {
+    button.textContent = "Notifications blocked";
+    button.dataset.state = "denied";
+  } else {
+    button.textContent = "Enable Notifications";
+    button.dataset.state = "default";
+  }
+
+  note.textContent = button.dataset.state === "denied"
+    ? "Notifications are blocked. Enable them in your browser settings to receive task reminders."
+    : "Notifications work while the website is open or running in the background. Closing the browser may prevent scheduled reminders from being delivered.";
+}
+
+function renderNotificationToggle() {
+  const topbar = document.querySelector(".topbar");
+  if (!topbar || topbar.querySelector("#notificationToggle")) {
+    updateNotificationToggle();
+    return;
+  }
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "topbar-actions";
+  const button = document.createElement("button");
+  button.id = "notificationToggle";
+  button.type = "button";
+  button.className = "notification-toggle";
+  button.addEventListener("click", async () => {
+    const permissionState = getNotificationCapability();
+    if (!permissionState.supported || !permissionState.secureContext) {
+      showMessage("Browser notifications are not supported in this page context.");
+      return;
+    }
+    if (Notification.permission === "denied") {
+      showMessage("Notifications are blocked in your browser settings. Please enable them there.");
+      return;
+    }
+    if (Notification.permission === "granted") {
+      showMessage("Notifications are already enabled.");
+      return;
+    }
+
+    button.disabled = true;
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission === "granted") {
+        showMessage("Notifications enabled.");
+        checkReminders();
+      } else if (permission === "denied") {
+        showMessage("Notifications are blocked. You can enable them in your browser settings.");
+      } else {
+        showMessage("Notification permission was not granted.");
+      }
+    } catch (error) {
+      console.error("Could not request browser notification permission.", error);
+      showMessage("Browser notification permission could not be requested.");
+    } finally {
+      updateNotificationToggle();
+    }
+  });
+
+  const note = document.createElement("p");
+  note.className = "notification-status-note";
+  wrapper.append(button, note);
+  topbar.append(wrapper);
+  updateNotificationToggle();
+}
+
 function renderPage() {
+  renderNotificationToggle();
   renderTaskList();
   renderCalendar();
   renderProgress();
@@ -970,17 +1228,14 @@ dialog?.addEventListener("close", () => {
 });
 form?.elements.reminder?.addEventListener("change", () => {
   form.elements.reminderTiming.disabled = !form.elements.reminder.checked;
-  if (!form.elements.reminder.checked || !("Notification" in window)) return;
+  if (!form.elements.reminder.checked) return;
+  const capability = getNotificationCapability();
+  if (!capability.supported || !capability.secureContext) {
+    showMessage("Browser notifications are unavailable in this page context.");
+    return;
+  }
   if (Notification.permission === "default") {
-    Notification.requestPermission()
-      .then((permission) => {
-        if (permission === "granted") checkReminders();
-        else showMessage("Browser notifications are off; due dates will still appear in the app.");
-      })
-      .catch((error) => {
-        console.error("Could not request browser notification permission.", error);
-        showMessage("Browser notification permission could not be requested.");
-      });
+    showMessage("Enable notifications from the header control to receive reminders.");
   }
 });
 form?.addEventListener("submit", (event) => {
@@ -1012,4 +1267,24 @@ form?.addEventListener("submit", (event) => {
 });
 
 renderPage();
-window.setInterval(checkReminders, 60 * 1000);
+window.addEventListener("focus", () => {
+  renderNotificationToggle();
+  checkReminders();
+});
+window.addEventListener("storage", (event) => {
+  if (event.key === STORAGE_KEY) {
+    tasks = loadTasks();
+    reconcileNotificationState();
+    renderPage();
+  } else if (event.key === NOTIFICATION_STATE_KEY) {
+    notificationState = loadNotificationState();
+    checkReminders();
+  }
+});
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) {
+    renderNotificationToggle();
+    checkReminders();
+  }
+});
+window.setInterval(checkReminders, 30 * 1000);
